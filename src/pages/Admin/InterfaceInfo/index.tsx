@@ -12,8 +12,12 @@ import { Button, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 
 import {
-  addInterfaceInfoUsingPost, deleteInterfaceInfoUsingPost,
-  listInterfaceInfoByPageUsingGet, updateInterfaceInfoUsingPost
+  addInterfaceInfoUsingPost,
+  deleteInterfaceInfoUsingPost,
+  listInterfaceInfoByPageUsingGet,
+  offlineInterfaceInfoUsingPost,
+  onlineInterfaceInfoUsingPost,
+  updateInterfaceInfoUsingPost
 } from "@/services/yuapi_backend/interfaceInfoController";
 import type {SortOrder} from "antd/lib/table/interface";
 import CreateModal from "@/pages/Admin/InterfaceInfo/components/CreateModal";
@@ -80,6 +84,54 @@ const TableList: React.FC = () => {
     } catch (error: any) {
       hide();
       message.error('操作失败' + error.message);
+      return false;
+    }
+  };
+
+  /**
+   *  Delete node
+   * @zh-CN 发布接口
+   *
+   * @param record
+   */
+  const handleOnline = async (record: API.IdRequest) => {
+    const hide = message.loading('发布中');
+    if (!record) return true;
+    try {
+      await onlineInterfaceInfoUsingPost({
+        id: record.id
+      });
+      hide();
+      message.success('操作成功');
+      actionRef.current?.reload();
+      return true;
+    } catch (error: any) {
+      hide();
+      message.error('操作失败，' + error.message);
+      return false;
+    }
+  };
+
+  /**
+   *  Delete node
+   * @zh-CN 下线接口
+   *
+   * @param record
+   */
+  const handleOffline = async (record: API.IdRequest) => {
+    const hide = message.loading('发布中');
+    if (!record) return true;
+    try {
+      await offlineInterfaceInfoUsingPost({
+        id: record.id
+      });
+      hide();
+      message.success('操作成功');
+      actionRef.current?.reload();
+      return true;
+    } catch (error: any) {
+      hide();
+      message.error('操作失败，' + error.message);
       return false;
     }
   };
@@ -201,21 +253,13 @@ const TableList: React.FC = () => {
           修改
         </a>,
 
-        <a
-          key="config"
-          onClick={() => {
-            handleRemove(record);
-          }}
-        >
-          删除
-        </a>,
 
         record.status === 0 ? <Button
           type="text"
           danger
-          key="config"
+          key="online"
           onClick={() => {
-            handleRemove(record);
+            handleOnline(record);
           }}
         >
           发布
@@ -224,13 +268,22 @@ const TableList: React.FC = () => {
         record.status === 1 ? <Button
           type="text"
           danger
-          key="config"
+          key="offline"
           onClick={() => {
-            handleRemove(record);
+            handleOffline(record);
           }}
         >
           下线
         </Button> : null,
+
+        <a
+          key="remove"
+          onClick={() => {
+            handleRemove(record);
+          }}
+        >
+          删除
+        </a>,
 
       ],
     },
